@@ -1,4 +1,4 @@
-# Flat Surface Cleaner (addon-super-cleanup)
+# Flat Surface Cleaner
 
 Add-on para Blender que limpa superfícies planas: ajusta o plano da seleção, reconstrói como uma única face sem geometria interna e aplica correções opcionais de contorno e normais. Útil para corrigir superfícies degradadas por booleans, importações de CAD ou modelagem hard-surface.
 
