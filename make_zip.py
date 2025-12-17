@@ -4,7 +4,7 @@
 Uso:
     python make_zip.py
 
-Cria `addon-super-cleanup.zip` contendo a pasta `addon_super_cleanup` com
+Cria `flat-surface-cleaner.zip` contendo a pasta `flat_surface_cleaner` com
 `__init__.py` (copiado de `dissolve.py`).
 """
 
@@ -17,8 +17,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 SRC = ROOT / "dissolve.py"
-PACKAGE_NAME = "addon_super_cleanup"
-ZIP_NAME = ROOT / "addon-super-cleanup.zip"
+PACKAGE_NAME = "flat_surface_cleaner"
+ZIP_NAME = ROOT / "flat-surface-cleaner.zip"
 
 
 def build_zip() -> Path:
