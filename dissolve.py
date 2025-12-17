@@ -52,6 +52,7 @@ LOCALE_STRINGS = {
         "report_no_boundary": "Não foi encontrado contorno. A seleção parece não definir uma 'tampa' aberta.",
         "report_invalid_active": "Face ativa inválida. Ative uma face dentro da seleção ou use 'Melhor Ajuste'.",
         "report_invalid_selection": "A seleção ficou inválida após weld (sem faces).",
+        "report_non_manifold_boundary": "Contorno inválido: há vértice com menos de duas arestas ou com ramificações.",
         "report_invalid_loop": "Contorno inválido (não foi possível formar loop fechado).",
         "report_invalid_loop_after_cleanup": "Loop inválido após limpeza (contorno insuficiente).",
         "report_create_face_fail": "Falha ao criar uma única face. Contorno pode estar auto-intersectando ou não-manifold.",
@@ -88,6 +89,7 @@ LOCALE_STRINGS = {
         "report_no_boundary": "No boundary found. The selection does not seem to define an open cap.",
         "report_invalid_active": "Invalid active face. Activate a face inside the selection or use 'Best Fit'.",
         "report_invalid_selection": "Selection became invalid after weld (no faces).",
+        "report_non_manifold_boundary": "Invalid boundary: a vertex has fewer than two edges or branches.",
         "report_invalid_loop": "Invalid boundary (could not form a closed loop).",
         "report_invalid_loop_after_cleanup": "Invalid loop after cleanup (insufficient boundary).",
         "report_create_face_fail": "Failed to create a single face. Boundary may self-intersect or be non-manifold.",
@@ -347,6 +349,17 @@ def _edges_to_loops(edges):
     return loops
 
 
+def _boundary_is_manifold(edges):
+    """Retorna True se cada vértice de contorno se conecta a exatamente duas arestas."""
+    counts = {}
+    for e in edges:
+        for v in e.verts:
+            counts[v] = counts.get(v, 0) + 1
+    if not counts:
+        return False
+    return all(c == 2 for c in counts.values())
+
+
 def _project_verts_to_plane(verts, origin: Vector, normal: Vector):
     n = normal.normalized()
     for v in verts:
@@ -553,6 +566,9 @@ class FSC_OT_make_planar_single_face(bpy.types.Operator):
 
         sel_verts = {v for f in sel_faces for v in f.verts}
         boundary_edges = _boundary_edges_of_selected_faces(sel_faces)
+        if not _boundary_is_manifold(boundary_edges):
+            self.report({"ERROR"}, L("report_non_manifold_boundary"))
+            return {"CANCELLED"}
         loops = _edges_to_loops(boundary_edges)
         if not loops:
             self.report({"ERROR"}, L("report_invalid_loop"))
@@ -588,6 +604,9 @@ class FSC_OT_make_planar_single_face(bpy.types.Operator):
             bm.verts.ensure_lookup_table()
             # re-extraí loop do contorno atual (para garantir consistência)
             boundary_edges = _boundary_edges_of_selected_faces([f for f in bm.faces if f.select])
+            if not _boundary_is_manifold(boundary_edges):
+                self.report({"ERROR"}, L("report_non_manifold_boundary"))
+                return {"CANCELLED"}
             loops2 = _edges_to_loops(boundary_edges)
             if loops2:
                 if st.keep_largest_loop and len(loops2) > 1:
